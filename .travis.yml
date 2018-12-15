@@ -1,0 +1,30 @@
+language: bash
+
+services:
+  - docker
+
+branches:
+  only:
+  - master
+
+sudo: required
+
+before_script:
+- echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+- ssh-keyscan -H $DEPLOY_SSH_ADDRESS >> ~/.ssh/known_hosts
+- chmod 600 ~/.ssh/2018_2_DeadMolesStudio_id_rsa.pem
+
+script:
+- docker pull deadmolesstudio/ketnipz-nginx || true
+- docker build --cache-from deadmolesstudio/ketnipz-nginx -t deadmolesstudio/ketnipz-nginx .
+- docker push deadmolesstudio/ketnipz-nginx
+- ssh -i ~/.ssh/2018_2_DeadMolesStudio_id_rsa.pem root@$DEPLOY_SSH_ADDRESS '
+  docker pull deadmolesstudio/ketnipz-nginx; 
+  docker stop nginx; 
+  docker rm nginx; 
+  docker run -d -p 80:80 -p 443:443 --net ketnipz-net --name nginx -v ~/ssl:/etc/nginx/ssl -v /opt/dmstudio:/app deadmolesstudio/ketnipz-nginx'
+
+before_install:
+- openssl aes-256-cbc -K $encrypted_096aca3807f4_key -iv $encrypted_096aca3807f4_iv
+  -in 2018_2_DeadMolesStudio_id_rsa.pem.enc -out ~/.ssh/2018_2_DeadMolesStudio_id_rsa.pem
+  -d
