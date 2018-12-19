@@ -20,8 +20,8 @@ script:
 - docker push deadmolesstudio/ketnipz-nginx
 - ssh -i ~/.ssh/2018_2_DeadMolesStudio_id_rsa.pem root@$DEPLOY_SSH_ADDRESS '
   docker pull deadmolesstudio/ketnipz-nginx; 
-  docker stop nginx; 
-  docker rm nginx; 
+  docker stop nginx || true; 
+  docker rm nginx || true; 
   docker run -d -p 80:80 -p 443:443 --net ketnipz-net --name nginx -v ~/ssl:/etc/nginx/ssl -v /opt/dmstudio:/app deadmolesstudio/ketnipz-nginx'
 
 before_install:
